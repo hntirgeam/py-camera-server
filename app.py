@@ -6,6 +6,11 @@ camera_id = int(os.getenv("CAMERA_ID", 0))
 
 capture = cv2.VideoCapture(camera_id)
 
+if not capture.isOpened():
+    import sys, errno
+    print(f"Camera on /dev/video{camera_id} is not working or cannot be opened by cv2.")
+    sys.exit(errno.EINTR)
+
 capture.set(cv2.CAP_PROP_SATURATION, 28)
 capture.set(cv2.CAP_PROP_BRIGHTNESS, 100)
 capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
