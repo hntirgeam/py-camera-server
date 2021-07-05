@@ -1,44 +1,39 @@
 import cv2
 from flask import Flask, Response
-from imutils.video import VideoStream
-import time
-
 import os
+
 camera_id = int(os.getenv("CAMERA_ID", 0))
 
-import statistics
+capture = cv2.VideoCapture(camera_id)
 
-cap = cv2.VideoCapture(camera_id)
+capture.set(cv2.CAP_PROP_SATURATION, 28)
+capture.set(cv2.CAP_PROP_BRIGHTNESS, 100)
+capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-app = Flask(__name__)
+app = Flask("web-stream")
 
-vs = VideoStream(src=camera_id).start()
 
-def generate():
-    t_time = []
+def generate_image():
     while True:
-        start = time.time()
-        ret, img = cap.read()
-        flag, encodedImage = cv2.imencode(".jpeg", img)
-        stop = time.time()
+        _, img = capture.read()
+        flag, encodedImage = cv2.imencode(".jpg", img)
 
-        t_time.append(stop - start)
-        print(1 / statistics.mean(t_time))
-
-        if len(t_time) > 10000:
-            t_time.clear()
-        
         if not flag:
             continue
-        # time.sleep(0.001)
-        yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
+
+        yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + bytearray(encodedImage) + b"\r\n")
 
 
 @app.route("/")
+def index():
+    return '<html><img src="/video" /></html>'
+
+
+@app.route("/video")
 def video_feed():
-    return Response(generate(), mimetype = "multipart/x-mixed-replace; boundary=frame")
+    return Response(generate_image(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(threaded=True, host="0.0.0.0")
-
