@@ -8,6 +8,7 @@ camera_id = int(os.getenv("CAMERA_ID", 0))
 
 import statistics
 
+cap = cv2.VideoCapture(camera_id)
 
 app = Flask(__name__)
 
@@ -17,12 +18,15 @@ def generate():
     t_time = []
     while True:
         start = time.time()
-        file = vs.read()
-        flag, encodedImage = cv2.imencode(".jpeg", file)
+        ret, img = cap.read()
+        flag, encodedImage = cv2.imencode(".jpeg", img)
         stop = time.time()
 
         t_time.append(stop - start)
         print(1 / statistics.mean(t_time))
+
+        if len(t_time) > 10000:
+            t_time.clear()
         
         if not flag:
             continue
