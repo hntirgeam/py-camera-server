@@ -22,7 +22,7 @@ def generate():
         stop = time.time()
 
         t_time.append(stop - start)
-
+        print(1 / statistics.mean(t_time))
         
         if not flag:
             continue
