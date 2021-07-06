@@ -7,6 +7,8 @@ We've spent 4 hours trying to implement it using cv2 with acceptable FPS (just i
 
 After 2 more hours of pain we gave up, tweaked some settings and executed ```git push --force --no-verify```
 
+---> There is also a branch with cv2 under the hood. Just in case: ```git checkout master```
+
 
 ## Installation 
 ```python3 -m venv venv```
