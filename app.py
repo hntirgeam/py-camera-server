@@ -6,7 +6,12 @@ camera_id = int(os.getenv("CAMERA_ID", 0))
 
 if not os.path.exists(f"/dev/video{camera_id}"):
     import sys, errno
-    print(f"Camera on /dev/video{camera_id} is not working or cannot be opened by v4l2py.")
+    print(f"Camera on /dev/video{camera_id} does not exist.")
+    sys.exit(errno.EINTR)
+
+if not Device.from_id(camera_id).video_capture:
+    import sys, errno
+    print(f"Camera on /dev/video{camera_id} cannot be opened by v4l2py.")
     sys.exit(errno.EINTR)
 
 app = Flask("web-stream")
