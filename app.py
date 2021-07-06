@@ -1,33 +1,22 @@
-import cv2
+from v4l2py import Device
 from flask import Flask, Response
 import os
 
 camera_id = int(os.getenv("CAMERA_ID", 0))
 
-capture = cv2.VideoCapture(camera_id)
-
-if not capture.isOpened():
+if not os.path.exists(f"/dev/video{camera_id}"):
     import sys, errno
-    print(f"Camera on /dev/video{camera_id} is not working or cannot be opened by cv2.")
+    print(f"Camera on /dev/video{camera_id} is not working or cannot be opened by v4l2py.")
     sys.exit(errno.EINTR)
-
-capture.set(cv2.CAP_PROP_SATURATION, 28)
-capture.set(cv2.CAP_PROP_BRIGHTNESS, 100)
-capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 app = Flask("web-stream")
 
 
 def generate_image():
-    while True:
-        _, img = capture.read()
-        flag, encodedImage = cv2.imencode(".jpg", img)
-
-        if not flag:
-            continue
-
-        yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + bytearray(encodedImage) + b"\r\n")
+    with Device.from_id(camera_id) as cam:
+        cam.video_capture.set_format(1280, 980, "MJPG")
+        for frame in cam:
+            yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
 
 
 @app.route("/")
