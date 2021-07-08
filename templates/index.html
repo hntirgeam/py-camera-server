@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <link rel="icon" href="{{ url_for('static', filename = 'favicon.ico') }}" />
+    <title>alwaysAI Video Streamer</title>
+  </head>
+
+  <body>
+    <div>
+      <img id="streamer-image" src="" />
+    </div>
+  </body>
+</html>
+
+<script>
+  const image_elem = document.getElementById("streamer-image");
+  console.log("ws://" + window.location.host)
+  const chatSocket = new WebSocket("ws://" + "0.0.0.0:5000");
+
+  chatSocket.onopen = function (e) {
+    console.error("Chat opened");
+  };
+
+  chatSocket.onmessage = function (event) {
+    console.log(event.data)
+  };
+
+  chatSocket.onclose = function (e) {
+    console.error("Chat socket closed unexpectedly");
+  };
+</script>
