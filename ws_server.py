@@ -1,17 +1,15 @@
 import asyncio
-import websockets
-from websockets import WebSocketServerProtocol
-import cv2
 import base64
-import time
-import websockets
-import asyncio
 import statistics
+import time
+
+import cv2
 import imutils
+import websockets
 from imutils.video import WebcamVideoStream
+from websockets import WebSocketServerProtocol
 
-
-vs = WebcamVideoStream(src=0).start()
+vs = WebcamVideoStream(src=2).start()
 
 
 class Server:
@@ -36,26 +34,19 @@ class Server:
 
     async def distribute(self, ws):
         print("distribute")
-        t_i = []
-        while 1:
-            start = time.time()
-            frame = vs.read()
-            frame = imutils.resize(frame, width=400)
+        print()
+        try:
+            while 1:
+                frame = vs.read()
+                frame = imutils.resize(frame, width=400)
+                if not frame.any():
+                    continue
+                await asyncio.sleep(0.072)
+                frame = cv2.imencode(".jpg", frame)[1].tobytes()
+                message = "data:image/jpeg;base64,{}".format(base64.b64encode(frame).decode("utf-8"))
 
-            frame = cv2.imencode(".jpg", frame)[1].tobytes()
-            message = "data:image/jpeg;base64,{}".format(base64.b64encode(frame).decode("utf-8"))
+                await self.send_to_clients(message)
+        except Exception as e:
+            print("Disconnected")
+            self.unregister(ws)
 
-            await self.send_to_clients(message)
-            stop = time.time()
-
-            t_i.append(1 / (stop - start))
-
-            print(statistics.mean(t_i))
-
-
-server = Server()
-
-start_server = websockets.serve(server.ws_handler, "0.0.0.0", 5000)
-loop = asyncio.get_event_loop()
-loop.run_until_complete(start_server)
-loop.run_forever()
