@@ -9,20 +9,20 @@
     <meta name="description" content="" />
     <meta name="author" content="" />
     <link rel="icon" href="{{ url_for('static', filename = 'favicon.ico') }}" />
-    <title>alwaysAI Video Streamer</title>
+    <title>Camera</title>
   </head>
 
   <body>
     <div>
-      <img id="streamer-image" src="" />
+      <img id="image-stream" src="" />
     </div>
   </body>
 </html>
 
 <script>
-  const image_elem = document.getElementById("streamer-image");
-  console.log("ws://" + window.location.host)
-  const chatSocket = new WebSocket("ws://" + "0.0.0.0:5000");
+  const image_elem = document.getElementById("image-stream");
+  console.log("ws://" + window.location.hostname)
+  const chatSocket = new WebSocket("ws://" + window.location.hostname + ':' + '5000');
 
   chatSocket.onopen = function (e) {
     console.error("Chat opened");
@@ -30,6 +30,7 @@
 
   chatSocket.onmessage = function (event) {
     console.log(event.data)
+    image_elem.src = event.data
   };
 
   chatSocket.onclose = function (e) {
