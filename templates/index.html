@@ -25,11 +25,10 @@
   const chatSocket = new WebSocket("ws://" + window.location.hostname + ':' + '5000');
 
   chatSocket.onopen = function (e) {
-    console.error("Chat opened");
+    console.log("Chat opened");
   };
 
   chatSocket.onmessage = function (event) {
-    console.log(event.data)
     image_elem.src = event.data
   };
 
