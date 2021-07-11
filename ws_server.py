@@ -8,8 +8,17 @@ import imutils
 import websockets
 from imutils.video import WebcamVideoStream
 from websockets import WebSocketServerProtocol
+import os
 
-vs = WebcamVideoStream(src=2).start()
+camera_id = int(os.getenv("CAMERA_ID", 2))
+
+vs = WebcamVideoStream(src=camera_id).start()
+
+if not vs.grabbed:
+    import sys, errno
+
+    print(f"Camera on /dev/video{camera_id} is not working or cannot be opened.")
+    sys.exit(errno.EINTR)
 
 
 class Server:
@@ -33,20 +42,21 @@ class Server:
             await self.unregister(ws)
 
     async def distribute(self, ws):
-        print("distribute")
-        print()
-        try:
-            while 1:
+        prev_msg = None
+        while 1:
+            if self.clients:
                 frame = vs.read()
-                frame = imutils.resize(frame, width=400)
+
                 if not frame.any():
                     continue
-                await asyncio.sleep(0.072)
+
                 frame = cv2.imencode(".jpg", frame)[1].tobytes()
                 message = "data:image/jpeg;base64,{}".format(base64.b64encode(frame).decode("utf-8"))
 
-                await self.send_to_clients(message)
-        except Exception as e:
-            print("Disconnected")
-            self.unregister(ws)
+                if prev_msg:
+                    if message == prev_msg:
+                        pass
+                    else:
+                        await self.send_to_clients(message)
 
+                prev_msg = message
